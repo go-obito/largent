@@ -1,0 +1,9 @@
+export type TransactionType = "income" | "expense";
+export type TransactionSource = "manual" | "csv_import";
+export type BudgetPeriod = "weekly" | "monthly";
+export type ReportPeriod = BudgetPeriod;
+export type Category = { id: string; name: string; icon: string; type: TransactionType };
+export type Transaction = { id: string; type: TransactionType; amount: number; categoryId: string; date: string; note: string; source: TransactionSource; createdAt: string; updatedAt: string };
+export type Budget = { id: string; categoryId: string; limit: number; period: BudgetPeriod };
+export type CategorySpending = { categoryId: string; amount: number };
+export type ReportSummary = { income: number; expenses: number; net: number; byCategory: CategorySpending[]; byDate: { date: string; amount: number }[] };

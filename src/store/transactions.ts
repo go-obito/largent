@@ -1,0 +1,11 @@
+import { categoryById } from "@/data/categories";
+import { sampleTransactions } from "@/data/transactions";
+import type { Transaction } from "@/types/finance";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { addTransactionToList, deleteTransactionFromList, updateTransactionInList, validateTransactionInput, type TransactionInput } from "./finance-operations";
+type Input = TransactionInput;
+type State = { transactions: Transaction[]; add: (input: Input) => void; update: (id: string, input: Input) => void; remove: (id: string) => void; clear: () => void };
+const validate = (input: Input) => { validateTransactionInput(input); if (categoryById(input.categoryId)?.type !== input.type) throw new Error("Choose a category that matches the transaction type."); };
+export const useTransactionStore = create<State>()(persist((set) => ({ transactions: sampleTransactions, add: (input) => { validate(input); const now = new Date().toISOString(); set((state) => ({ transactions: addTransactionToList(state.transactions, input, crypto.randomUUID(), now) })); }, update: (id, input) => { validate(input); set((state) => ({ transactions: updateTransactionInList(state.transactions, id, input, new Date().toISOString()) })); }, remove: (id) => set((state) => ({ transactions: deleteTransactionFromList(state.transactions, id) })), clear: () => set({ transactions: [] }) }), { name: "largent-transactions", version: 1, storage: createJSONStorage(() => AsyncStorage) }));

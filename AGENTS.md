@@ -8,7 +8,7 @@ You think like a senior mobile developer shipping to real users.
 
 ## Project Overview
 
-We are building a mobile personal finance tracker using Expo.
+We are building Largent, a mobile personal finance tracker using Expo.
 
 The app helps users understand and control their money through:
 
@@ -88,7 +88,52 @@ Do not install or use new libraries without user approval.
 
 Use this structure unless there is a strong reason to change it:
 
-[PLACEHOLDER: the original file ends before listing the folder structure. Paste the original Architecture section here, or tell me what structure you want.]
+```
+app/
+  _layout.tsx              Root layout: font loading, providers (Clerk, PostHog), auth redirect
+  (auth)/
+    _layout.tsx
+    onboarding.tsx         /onboarding
+    sign-up.tsx
+    sign-in.tsx
+  (tabs)/
+    _layout.tsx            Custom bottom tab bar
+    index.tsx              Home (/)
+    transactions.tsx
+    budgets.tsx
+    reports.tsx
+    profile.tsx
+  transaction/
+    new.tsx                Add transaction
+    [id].tsx               Edit transaction
+  budget/
+    new.tsx                Add budget
+    [id].tsx               Edit budget
+  import.tsx               CSV import flow
+  api/
+    import-csv+api.ts      Server-side CSV parsing (Expo API route)
+components/
+  ui/                      Button, Input, Card, Badge, ProgressBar, ListRow
+  tab-bar/                 Custom tab bar
+  transactions/ budgets/ reports/   Feature components, only when a screen needs them
+constants/
+  images.ts                Centralized image imports
+data/                      categories.ts, transactions.ts, budgets.ts (sample data is development only)
+store/                     transactions.ts, budgets.ts (Zustand + AsyncStorage)
+types/
+  finance.ts
+lib/                       currency.ts, dates.ts, reports.ts, posthog.ts (existing)
+theme/                     colors.ts, typography.ts, spacing.ts, index.ts
+assets/                    images/, fonts/
+global.css
+```
+
+Rules:
+
+- Screens stay thin: calculations live in `lib/`, state lives in `store/`.
+- One component per file. No hardcoded colors, font sizes, or spacing; use the theme tokens.
+- Money is formatted only through `lib/currency.ts`.
+- Do not add folders outside this structure without asking.
 
 
 ---
@@ -96,6 +141,8 @@ Use this structure unless there is a strong reason to change it:
 ## Feature Build Plan
 
 The steps below are implemented in order, one at a time. When asked to implement a numbered step, follow its section strictly, together with every rule above. If a step says to ask before implementation, ask first and do not guess.
+
+Progress: Steps 01 to 04 are complete (NativeWind and blue design tokens with Inter font, onboarding, sign-up and sign-in UI with a mock six-digit verification modal). Continue from Step 05. Do not redo completed steps; verify the existing code before building on it.
 
 ### Step 01: NativeWind setup
 
@@ -105,13 +152,13 @@ Set up NativeWind in this Expo app by following the NativeWind documentation I p
 
 ### Step 02: Design theme
 
-Implement the full design system using NativeWind based on the attached design theme. Set up global CSS utilities, separate design tokens in theme folder, and font loading/config for the app. Ensure everything is as is shown in attached design theme.
+Implement the full design system using NativeWind based on the design system in design-system.md. Set up global CSS utilities, separate design tokens in theme folder, and font loading/config for the app. Ensure everything is as specified in design-system.md.
 
-@prompt_material/01-design-system.png
+@design-system.md
 
 ### Step 03: Onboarding UI
 
-Implement the onboarding screen as shown in the attached design exactly as is using assets from the assets folder. Add a navigation link on the home route (/) to open the onboarding screen. Use the logo image from the assets folder for the top logo alongside the app name “[APP NAME]” (replace the app name shown in the design), and do not include the pagination dots.
+Implement the onboarding screen as shown in the attached design exactly as is using assets from the assets folder. Add a navigation link on the home route (/) to open the onboarding screen. Use the logo image from the assets folder for the top logo alongside the app name “Largent” (replace the app name shown in the design), and do not include the pagination dots.
 
 Replace any language-learning copy in the design with finance tracker copy about tracking income and expenses, setting budgets, importing bank statements, and viewing reports.
 
@@ -147,7 +194,7 @@ Do not change the screen design. If there is any need, ask me before implementat
 
 Create the finance data foundation using typed TypeScript. Add `types/finance.ts`, `data/categories.ts`, `data/transactions.ts`, and `data/budgets.ts`. Define transaction types (income and expense), categories (id, name, icon, and type), transactions (id, type, amount, category, date, note, and source such as manual or csv_import), budgets (category, limit, and period), and the types needed for report summaries.
 
-Store money amounts as integers in the smallest currency unit and keep the app currency in a single constant in one place. Ask me which currency to use and which budget periods to support before implementation.
+Store money amounts as integers in the smallest currency unit and keep the app currency in a single constant in one place. Use the Ghanaian cedi (GHS, symbol ₵) as the single app currency, and support weekly and monthly budget periods. Weeks start on Monday. Use these default categories. Income: Salary, Freelance, Business, Investment, Other. Expense: Food, Transport, Housing, Utilities, Health, Shopping, Entertainment, Education, Other.
 
 Include a small sample dataset for development only, clearly marked and easy to remove. Keep everything simple, typed, and easy to extend.
 
@@ -211,7 +258,7 @@ Use assets from the assets folder and the existing design system.
 
 ### Step 13: Reports UI
 
-Implement the Reports screen exactly as shown in the attached design. Compute everything from the Zustand store: total income vs total expenses, net balance, spending by category, and spending over time. Add a period selector, and ask me which periods to support before implementation.
+Implement the Reports screen exactly as shown in the attached design. Compute everything from the Zustand store: total income vs total expenses, net balance, spending by category, and spending over time. Add a period selector with weekly and monthly periods.
 
 Build the charts with simple View-based components. If a charting library would significantly improve the result, recommend it, explain why, and ask for my permission before adding it.
 
@@ -225,7 +272,7 @@ Implement bank statement import from CSV files. The flow should be: pick a CSV f
 
 Handle errors clearly: invalid or empty files, unreadable rows, bad dates, and bad amounts. Show how many rows were imported and how many were skipped. Store amounts as integers in the smallest currency unit.
 
-Ask me before implementation whether parsing should happen on the device or server-side, and ask for my permission before adding any library (such as a file picker or CSV parser). Never log statement contents.
+Parse the file server-side through an Expo API route (`app/api/import-csv+api.ts`) and keep the parsing logic out of the screen. Ask for my permission before adding any library (such as a file picker or CSV parser). Never log statement contents.
 
 @prompt_material/[csv-import-screen-design].png
 
@@ -253,3 +300,9 @@ Implementation rules:
 - Never send amounts, notes, descriptions, or any other financial details as event or user properties.
 - Do not modify any UI.
 - Do not expose any keys; PostHog is already configured via environment variables.
+
+### Step 16: Profile UI
+
+Implement the Profile tab screen using the existing design system. Show the logged-in user's account information from Clerk, a Sign Out button, and a Clear Local Data button that wipes the persisted transactions and budgets stores after a confirmation prompt. Signing out must not clear local data; only the Clear Local Data button does, after a confirmation prompt.
+
+@design-system.md
