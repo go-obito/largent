@@ -3,8 +3,8 @@ import { colors, fontFamily, spacing, typography } from "@/theme";
 import { Image } from "expo-image";
 import { type Href, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function OnboardingScreen() {
   const router = useRouter();

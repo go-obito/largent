@@ -24,7 +24,7 @@ export function CustomTabBar({ state, navigation }: TabBarProps) {
   const tabWidth = state.routes.length > 0 ? (barWidth - spacing[2] * 2) / state.routes.length : 0;
 
   useEffect(() => {
-    indicatorPosition.value = withSpring(state.index * tabWidth, { damping: 18, stiffness: 180 });
+    indicatorPosition.value = withSpring(state.index * tabWidth, { damping: 20, stiffness: 220 });
   }, [indicatorPosition, state.index, tabWidth]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
@@ -42,7 +42,7 @@ export function CustomTabBar({ state, navigation }: TabBarProps) {
           pointerEvents="none"
           style={[
             styles.indicatorSlot,
-            { width: tabWidth, left: spacing[2] + (tabWidth - 48) / 2 },
+            { width: tabWidth, left: spacing[2] },
             indicatorStyle,
           ]}
         >
@@ -72,7 +72,7 @@ export function CustomTabBar({ state, navigation }: TabBarProps) {
           >
             <Ionicons
               name={focused ? presentation.activeIcon : presentation.icon}
-              size={24}
+              size={20}
               color={color}
             />
             {!focused ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={styles.label}>{presentation.label}</Text> : null}
@@ -85,7 +85,7 @@ export function CustomTabBar({ state, navigation }: TabBarProps) {
 
 const styles = StyleSheet.create({
   bar: {
-    minHeight: 64,
+    minHeight: 66,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.neutral.surface,

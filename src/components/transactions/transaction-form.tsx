@@ -1,8 +1,8 @@
 import { categories } from "@/data/categories";
 import { parseMoney } from "@/lib/currency";
-import type { TransactionType } from "@/types/finance";
-import { colors, radii, spacing, typography } from "@/theme";
 import { useTransactionStore } from "@/store/transactions";
+import { colors, radii, spacing, typography } from "@/theme";
+import type { TransactionType } from "@/types/finance";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
