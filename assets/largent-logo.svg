@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>Largent finance icon</title>
+  <defs>
+    <linearGradient id="leaf" x1="128" y1="48" x2="310" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34D399"/>
+      <stop offset="1" stop-color="#0F5D3B"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="170" y1="210" x2="245" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6EE7B7"/>
+      <stop offset="1" stop-color="#16A34A"/>
+    </linearGradient>
+  </defs>
+  <!-- Rising, ribbon-like financial mark -->
+  <path d="M96 350V176c0-31 13-59 36-78l72-59c13-11 33-2 33 15v83c0 19-8 37-22 51l-67 67c-14 14-22 32-22 51v44H96Z" fill="url(#leaf)"/>
+  <path d="M126 350v-25c0-17 7-33 19-45l73-72c13-13 21-30 21-49v-9c0-14 11-25 25-25s25 11 25 25v72c0 17-7 33-19 45l-83 83H126Z" fill="url(#mint)"/>
+  <path d="M205 350h-48l43-43c12-12 28-19 45-19h110c15 0 22 18 11 29l-24 24c-6 6-14 9-22 9H205Z" fill="#0F5D3B"/>
+  <rect x="286" y="150" width="45" height="138" rx="22.5" fill="#34D399"/>
+  <rect x="347" y="112" width="45" height="176" rx="22.5" fill="#16A34A"/>
+  <rect x="408" y="75" width="45" height="213" rx="22.5" fill="#0F5D3B"/>
+</svg>
