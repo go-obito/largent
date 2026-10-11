@@ -4,48 +4,9 @@
 @import "nativewind/theme";
 
 @theme {
-  /* Brand */
-  --color-brand-forest: #0f5d3b;
-  --color-brand-green: #16a34a;
-  --color-brand-mint: #34d399;
-  --color-brand-light-green: #e6f9ee;
-  --color-brand-charcoal: #0b1320;
-
-  /* Semantic */
-  --color-success: #16a34a;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Neutrals */
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #64748b;
-  --color-border: #e5e7eb;
-  --color-surface: #f8fafc;
-  --color-background: #ffffff;
-
-  /* Font families map directly to the names loaded in the root layout. */
-  --font-sans: "Inter_400Regular";
-  --font-inter: "Inter_400Regular";
-  --font-inter-medium: "Inter_500Medium";
-  --font-inter-semibold: "Inter_600SemiBold";
-  --font-inter-bold: "Inter_700Bold";
-
-  /* Type scale from the Largent design system. */
-  --text-h1: 32px;
-  --text-h1--line-height: 38.4px;
-  --text-h2: 24px;
-  --text-h2--line-height: 31.2px;
-  --text-h3: 20px;
-  --text-h3--line-height: 26px;
-  --text-h4: 16px;
-  --text-h4--line-height: 22.4px;
-  --text-body-lg: 16px;
-  --text-body-lg--line-height: 25.6px;
-  --text-body-md: 14px;
-  --text-body-md--line-height: 22.4px;
-  --text-body-sm: 13px;
-  --text-body-sm--line-height: 20.8px;
-  --text-caption: 11px;
-  --text-caption--line-height: 15.4px;
+  --color-primary-50: #EFF6FF; --color-primary-100: #DBEAFE; --color-primary-200: #BFDBFE; --color-primary-300: #93C5FD; --color-primary-400: #60A5FA; --color-primary-500: #3B82F6; --color-primary-600: #2563EB; --color-primary-700: #1D4ED8; --color-primary-800: #1E40AF; --color-primary-900: #1E3A8A;
+  --color-neutral-50: #F8FAFC; --color-neutral-100: #F1F5F9; --color-neutral-200: #E2E8F0; --color-neutral-300: #CBD5E1; --color-neutral-400: #94A3B8; --color-neutral-500: #64748B; --color-neutral-600: #475569; --color-neutral-700: #334155; --color-neutral-800: #1E293B; --color-neutral-900: #0F172A;
+  --color-income: #15803D; --color-expense: #B91C1C; --color-warning: #B45309;
+  --font-sans: "Inter_400Regular"; --font-inter: "Inter_400Regular"; --font-inter-medium: "Inter_500Medium"; --font-inter-semibold: "Inter_600SemiBold"; --font-inter-bold: "Inter_700Bold";
+  --text-display: 36px; --text-display--line-height: 44px; --text-title-1: 28px; --text-title-1--line-height: 36px; --text-title-2: 22px; --text-title-2--line-height: 28px; --text-title-3: 18px; --text-title-3--line-height: 24px; --text-body: 16px; --text-body--line-height: 24px; --text-caption: 14px; --text-caption--line-height: 20px; --text-small: 12px; --text-small--line-height: 16px;
 }
