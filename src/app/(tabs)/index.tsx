@@ -1,14 +1,16 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { useTransactionStore } from "@/store/transactions";
-import { useBudgetStore } from "@/store/budgets";
-import { budgetSpend, totals, transactionsInPeriod } from "@/lib/finance";
-import { formatMoney } from "@/lib/currency";
-import { categoryById } from "@/data/categories";
-import { colors, radii, spacing, typography } from "@/theme";
 import { Empty, ScreenTitle, TransactionRow, styles as ui } from "@/components/ui";
+import { categoryById } from "@/data/categories";
+import { formatMoney } from "@/lib/currency";
+import { budgetSpend, totals, transactionsInPeriod } from "@/lib/finance";
+import { useBudgetStore } from "@/store/budgets";
+import { useTransactionStore } from "@/store/transactions";
+import { colors, radii, spacing, typography } from "@/theme";
 import { useUser } from "@clerk/expo";
+import { type Href, useRouter } from "expo-router";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Home() {
+	const router = useRouter();
 	const transactions = useTransactionStore((state) => state.transactions);
 	const budgets = useBudgetStore((state) => state.budgets);
 	const { user } = useUser();
@@ -18,7 +20,12 @@ export default function Home() {
 
 	return (
 		<ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-			<ScreenTitle>{`Good day, ${greeting}`}</ScreenTitle>
+			<View style={styles.heading}>
+				<ScreenTitle>{`Good day, ${greeting}`}</ScreenTitle>
+				<TouchableOpacity accessibilityRole="button" accessibilityLabel="Open onboarding" onPress={() => router.push("/onboarding" as Href)}>
+					<Text style={styles.onboardingLink}>Onboarding</Text>
+				</TouchableOpacity>
+			</View>
 			<View style={styles.balance}>
 				<Text style={styles.balanceLabel}>Total balance</Text>
 				<Text style={styles.balanceAmount}>{formatMoney(balance.income - balance.expenses)}</Text>
@@ -64,6 +71,8 @@ export default function Home() {
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: colors.neutral[50] },
 	content: { padding: spacing[5], gap: spacing[3], paddingBottom: spacing[8] },
+	heading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+	onboardingLink: { ...typography.caption, color: colors.primary[600] },
 	balance: { backgroundColor: colors.primary[600], padding: spacing[5], borderRadius: radii.lg },
 	balanceLabel: { ...typography.caption, color: colors.primary[100] },
 	balanceAmount: { ...typography.display, color: colors.neutral.surface, fontVariant: ["tabular-nums"], marginTop: spacing[1] },
