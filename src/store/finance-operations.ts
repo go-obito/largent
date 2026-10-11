@@ -1,5 +1,26 @@
 import type { Budget, Transaction } from "@/types/finance";
 
+const knownSeedTransactionIds = new Set(["seed-salary", "seed-food", "seed-transport"]);
+const knownSeedBudgetIds = new Set(["seed-food-budget", "seed-transport-budget"]);
+
+export function removeKnownSeedTransactions(transactions: Transaction[]): Transaction[] {
+  return transactions.filter((transaction) => !knownSeedTransactionIds.has(transaction.id));
+}
+
+export function removeKnownSeedBudgets(budgets: Budget[]): Budget[] {
+  return budgets.filter((budget) => !knownSeedBudgetIds.has(budget.id));
+}
+
+export function migratePersistedTransactions(persistedState: unknown): { transactions: Transaction[] } {
+  const state = (persistedState ?? {}) as { transactions?: Transaction[] };
+  return { transactions: removeKnownSeedTransactions(state.transactions ?? []) };
+}
+
+export function migratePersistedBudgets(persistedState: unknown): { budgets: Budget[] } {
+  const state = (persistedState ?? {}) as { budgets?: Budget[] };
+  return { budgets: removeKnownSeedBudgets(state.budgets ?? []) };
+}
+
 export type TransactionInput = Omit<Transaction, "id" | "createdAt" | "updatedAt">;
 export type BudgetInput = Omit<Budget, "id">;
 

@@ -1,10 +1,10 @@
-import { sampleBudgets } from "@/data/budgets";
 import { categoryById } from "@/data/categories";
 import type { Budget } from "@/types/finance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { randomUUID } from "expo-crypto";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { addBudgetToList, deleteBudgetFromList, updateBudgetInList, validateBudgetInput, type BudgetInput } from "./finance-operations";
+import { addBudgetToList, deleteBudgetFromList, migratePersistedBudgets, updateBudgetInList, validateBudgetInput, type BudgetInput } from "./finance-operations";
 type Input = BudgetInput; type State = { budgets: Budget[]; add: (input: Input) => void; update: (id: string, input: Input) => void; remove: (id: string) => void; clear: () => void };
 const validate = (input: Input) => { validateBudgetInput(input); if (categoryById(input.categoryId)?.type !== "expense") throw new Error("Choose an expense category."); };
-export const useBudgetStore = create<State>()(persist((set) => ({ budgets: sampleBudgets, add: (input) => { validate(input); set((state) => ({ budgets: addBudgetToList(state.budgets, input, crypto.randomUUID()) })); }, update: (id, input) => { validate(input); set((state) => ({ budgets: updateBudgetInList(state.budgets, id, input) })); }, remove: (id) => set((state) => ({ budgets: deleteBudgetFromList(state.budgets, id) })), clear: () => set({ budgets: [] }) }), { name: "largent-budgets", version: 1, storage: createJSONStorage(() => AsyncStorage) }));
+export const useBudgetStore = create<State>()(persist((set) => ({ budgets: [], add: (input) => { validate(input); set((state) => ({ budgets: addBudgetToList(state.budgets, input, randomUUID()) })); }, update: (id, input) => { validate(input); set((state) => ({ budgets: updateBudgetInList(state.budgets, id, input) })); }, remove: (id) => set((state) => ({ budgets: deleteBudgetFromList(state.budgets, id) })), clear: () => set({ budgets: [] }) }), { name: "largent-budgets", version: 2, storage: createJSONStorage(() => AsyncStorage), migrate: migratePersistedBudgets }));

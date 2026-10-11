@@ -86,7 +86,7 @@ Money rules:
 - Two Zustand stores (`store/transactions.ts`, `store/budgets.ts`), persisted with `@react-native-async-storage/async-storage`.
 - Actions: add, update, delete for both stores.
 - Add a persistence `version` to each store so future schema changes can be migrated.
-- Seed from the sample data in `data/*` only on first launch, and mark the sample data clearly as development-only and easy to remove.
+- Initialize transaction and budget collections empty. Never automatically seed fabricated financial records; preserve valid persisted user-created records across launches.
 - Derived values (balance, period totals, budget spending, report data) are computed by pure functions in `lib/`, not stored.
 - Validate all input (amount greater than zero, category and date required) before it reaches a store.
 

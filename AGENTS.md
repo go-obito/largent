@@ -118,7 +118,7 @@ components/
   transactions/ budgets/ reports/   Feature components, only when a screen needs them
 constants/
   images.ts                Centralized image imports
-data/                      categories.ts, transactions.ts, budgets.ts (sample data is development only)
+data/                      categories.ts (application category configuration)
 store/                     transactions.ts, budgets.ts (Zustand + AsyncStorage)
 types/
   finance.ts
@@ -192,15 +192,15 @@ Do not change the screen design. If there is any need, ask me before implementat
 
 ### Step 06: Finance data system
 
-Create the finance data foundation using typed TypeScript. Add `types/finance.ts`, `data/categories.ts`, `data/transactions.ts`, and `data/budgets.ts`. Define transaction types (income and expense), categories (id, name, icon, and type), transactions (id, type, amount, category, date, note, and source such as manual or csv_import), budgets (category, limit, and period), and the types needed for report summaries.
+Create the finance data foundation using typed TypeScript. Add `types/finance.ts` and `data/categories.ts`. Define transaction types (income and expense), categories (id, name, icon, and type), transactions (id, type, amount, category, date, note, and source such as manual or csv_import), budgets (category, limit, and period), and the types needed for report summaries. Do not add fabricated transaction or budget data modules.
 
 Store money amounts as integers in the smallest currency unit and keep the app currency in a single constant in one place. Use the Ghanaian cedi (GHS, symbol ₵) as the single app currency, and support weekly and monthly budget periods. Weeks start on Monday. Use these default categories. Income: Salary, Freelance, Business, Investment, Other. Expense: Food, Transport, Housing, Utilities, Health, Shopping, Entertainment, Education, Other.
 
-Include a small sample dataset for development only, clearly marked and easy to remove. Keep everything simple, typed, and easy to extend.
+Keep finance record collections empty until users create or import records. Do not seed transactions or budgets with fabricated records.
 
 ### Step 07: Zustand state
 
-Integrate local finance state. Create Zustand stores for transactions and budgets, persisted with the modern `@react-native-async-storage/async-storage` package. Add actions to add, update, and delete transactions, and to create, update, and delete budgets. Seed the stores from the sample data in `data/*` only on first launch.
+Integrate local finance state. Create Zustand stores for transactions and budgets, persisted with the modern `@react-native-async-storage/async-storage` package. Add actions to add, update, and delete transactions, and to create, update, and delete budgets. Initialize both collections empty; preserve persisted user-created records across launches.
 
 Keep the existing authentication routing: unauthenticated users see onboarding (/onboarding) and authenticated users go to the home route (/). Preserve the existing UI exactly.
 
@@ -220,7 +220,7 @@ Do not implement the Home screen UI yet.
 
 Implement the Home screen UI exactly as shown in the attached design with spacing structure and such neatly exactly done. Display the logged-in user information from Clerk.
 
-Use the data from the Zustand stores (seeded from `data/*`) to fill the design's sections with finance content: the current balance with this period's income and expense totals, budget progress, and recent transactions.
+Use data from the Zustand stores to fill the design's sections with finance content: the current balance with this period's income and expense totals, budget progress, and recent transactions. Show empty states when users have not created financial records.
 
 Use assets from the assets folder via the centralized images import. If any image is missing, use a suitable placeholder from Unsplash or Picsum.
 
