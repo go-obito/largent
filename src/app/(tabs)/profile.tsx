@@ -1,7 +1,48 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ScreenTitle, styles as ui } from "@/components/ui";
+import { useBudgetStore } from "@/store/budgets";
+import { useTransactionStore } from "@/store/transactions";
+import { colors, radii, spacing, typography } from "@/theme";
+import { useClerk, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, radii, spacing, typography } from "@/theme";
-import { ScreenTitle, styles as ui } from "@/components/ui";
-export default function Profile() { const router = useRouter(); const clear = () => Alert.alert("Clear local data?", "This permanently removes transactions and budgets stored on this device.", [{ text: "Cancel", style: "cancel" }, { text: "Clear data", style: "destructive", onPress: () => void AsyncStorage.multiRemove(["largent-transactions", "largent-budgets"]) }]); return <View style={styles.screen}><ScreenTitle>Profile</ScreenTitle><View style={ui.card}><Text style={styles.name}>Your Largent account</Text><Text style={styles.email}>Sign in to sync your account details.</Text></View><Pressable style={styles.button} onPress={() => router.replace("/onboarding")}><Text style={styles.buttonText}>Sign out</Text></Pressable><Pressable style={styles.destructive} onPress={clear}><Text style={styles.destructiveText}>Clear local data</Text></Pressable></View>; }
+
+export default function Profile() {
+	const router = useRouter();
+	const { signOut } = useClerk();
+	const { user } = useUser();
+	const clearTransactions = useTransactionStore((state) => state.clear);
+	const clearBudgets = useBudgetStore((state) => state.clear);
+	const accountName = user?.fullName || user?.primaryEmailAddress?.emailAddress || "Largent account";
+	const email = user?.primaryEmailAddress?.emailAddress;
+
+	const clear = () => Alert.alert("Clear local data?", "This permanently removes transactions and budgets stored on this device.", [
+		{ text: "Cancel", style: "cancel" },
+		{ text: "Clear data", style: "destructive", onPress: () => { clearTransactions(); clearBudgets(); } },
+	]);
+
+	const signOutUser = async () => {
+		try {
+			await signOut();
+			router.replace("/onboarding");
+		} catch {
+			Alert.alert("Unable to sign out", "Please try again.");
+		}
+	};
+
+	return (
+		<View style={styles.screen}>
+			<ScreenTitle>Profile</ScreenTitle>
+			<View style={ui.card}>
+				<Text style={styles.name}>{accountName}</Text>
+				{email ? <Text style={styles.email}>{email}</Text> : null}
+			</View>
+			<Pressable style={styles.button} onPress={() => void signOutUser()}>
+				<Text style={styles.buttonText}>Sign out</Text>
+			</Pressable>
+			<Pressable style={styles.destructive} onPress={clear}>
+				<Text style={styles.destructiveText}>Clear local data</Text>
+			</Pressable>
+		</View>
+	);
+}
 const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: colors.neutral[50], padding: spacing[5], gap: spacing[3] }, name: { ...typography.bodyMedium, color: colors.neutral[900] }, email: { ...typography.caption, color: colors.neutral[600], marginTop: spacing[1] }, button: { height: 52, borderRadius: radii.md, borderWidth: 1, borderColor: colors.neutral[200], alignItems: "center", justifyContent: "center", backgroundColor: colors.neutral.surface, marginTop: "auto" }, buttonText: { ...typography.bodyMedium, color: colors.neutral[900] }, destructive: { height: 52, borderRadius: radii.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.semantic.expense }, destructiveText: { ...typography.bodyMedium, color: colors.neutral.surface } });

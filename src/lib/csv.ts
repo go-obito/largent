@@ -35,8 +35,8 @@ export function parseCsvRows(csv: string): string[][] {
   if (rows.length < 2) throw new Error("The CSV must contain a header and at least one transaction row.");
 
   const columnCount = rows[0].length;
-  if (columnCount < 3 || rows.slice(1).some((values) => values.length > columnCount)) {
-    throw new Error("The CSV contains unreadable rows or too few columns.");
+  if (columnCount < 3 || rows.slice(1).some((values) => values.length !== columnCount)) {
+    throw new Error("The CSV contains unreadable rows or rows with inconsistent columns.");
   }
 
   return rows.map((values) => Array.from({ length: columnCount }, (_, index) => values[index] ?? ""));
@@ -66,8 +66,8 @@ export function parseCsvDate(value: string): string | null {
       month = first;
       day = second;
     } else {
-      month = first;
-      day = second;
+      day = first;
+      month = second;
     }
   }
 

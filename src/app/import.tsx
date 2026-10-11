@@ -3,15 +3,26 @@ import { formatMoney } from "@/lib/currency";
 import { useTransactionStore } from "@/store/transactions";
 import { colors, radii, spacing, typography } from "@/theme";
 import { useAuth } from "@clerk/expo";
+import Constants from "expo-constants";
 import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 type ColumnMapping = { date: number | null; description: number | null; amount: number | null };
 type ImportedRow = { date: string; description: string; amount: number; type: "income" | "expense" };
 type ParseHeadersResult = { headers: string[]; rowCount: number; preview: string[][] };
 type ParseRowsResult = { rows: ImportedRow[] };
 type ErrorResult = { error?: string };
+
+function importApiUrl() {
+  const configuredUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, "");
+  if (configuredUrl) return `${configuredUrl}/api/import-csv`;
+  if (Platform.OS === "web") return "/api/import-csv";
+
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (!hostUri) throw new Error("CSV import is unavailable. Configure EXPO_PUBLIC_API_URL for this build.");
+  return `http://${hostUri}/api/import-csv`;
+}
 
 export default function ImportScreen() {
   const { getToken } = useAuth();
@@ -38,7 +49,7 @@ export default function ImportScreen() {
       requestHeaders["x-description-column"] = String(selectedMapping.description);
       requestHeaders["x-amount-column"] = String(selectedMapping.amount);
     }
-    const response = await fetch("/api/import-csv", { method: "POST", headers: requestHeaders, body: fileText });
+    const response = await fetch(importApiUrl(), { method: "POST", headers: requestHeaders, body: fileText });
     const result = await response.json() as ParseHeadersResult & ParseRowsResult & ErrorResult;
     if (!response.ok) throw new Error(result.error ?? "The CSV could not be processed.");
     return result;
@@ -67,7 +78,7 @@ export default function ImportScreen() {
       setMapping({ date: null, description: null, amount: null });
       const token = await getToken();
       if (!token) throw new Error("Your session has expired. Sign in and try again.");
-      const response = await fetch("/api/import-csv", {
+      const response = await fetch(importApiUrl(), {
         method: "POST",
         headers: { authorization: `Bearer ${token}`, "content-type": "text/csv" },
         body: text,
@@ -98,23 +109,29 @@ export default function ImportScreen() {
     }
   }
 
-  function isDuplicate(row: ImportedRow) {
-    const date = row.date.slice(0, 10);
-    return transactions.some((transaction) => transaction.date.slice(0, 10) === date
-      && transaction.amount === row.amount
-      && transaction.type === row.type
-      && transaction.note.trim() === row.description.trim());
+  function rowFingerprint(row: ImportedRow) {
+    return [row.date.slice(0, 10), row.amount, row.type, row.description.trim()].join("\u0000");
+  }
+
+  function isDuplicate(row: ImportedRow, index: number) {
+    const fingerprint = rowFingerprint(row);
+    return transactions.some((transaction) => rowFingerprint({
+      date: transaction.date,
+      amount: transaction.amount,
+      type: transaction.type,
+      description: transaction.note,
+    }) === fingerprint) || rows.slice(0, index).some((previous) => rowFingerprint(previous) === fingerprint);
   }
 
   function saveRows() {
-    if (rows.some((_, index) => !isDuplicate(rows[index]) && !categoryByRow[index])) {
+    if (rows.some((row, index) => !isDuplicate(row, index) && !categoryByRow[index])) {
       setError("Assign a category to each new transaction before importing.");
       return;
     }
-    const duplicates = rows.filter(isDuplicate).length;
+    const duplicates = rows.filter((row, index) => isDuplicate(row, index)).length;
     let imported = 0;
     rows.forEach((row, index) => {
-      if (isDuplicate(row)) return;
+      if (isDuplicate(row, index)) return;
       addTransaction({
         type: row.type,
         amount: row.amount,
@@ -167,7 +184,7 @@ export default function ImportScreen() {
         ) : <>
           <Text style={styles.heading}>Review transactions</Text>
           {rows.map((row, index) => {
-            const duplicate = isDuplicate(row);
+            const duplicate = isDuplicate(row, index);
             const options = categories.filter((category) => category.type === row.type);
             return (
               <View key={`${row.date}-${index}`} style={styles.rowCard}>

@@ -41,7 +41,9 @@ test("CSV parser handles quoted commas and common dates", () => {
     ["2026-10-11", "Lunch, cafe", "-12.50"],
   ]);
   assert.equal(parseCsvDate("31/12/2025"), "2025-12-31T12:00:00.000Z");
+  assert.equal(parseCsvDate("02/03/2025"), "2025-03-02T12:00:00.000Z");
   assert.equal(parseCsvDate("2025-02-30"), null);
+  assert.throws(() => parseCsvRows("date,description,amount\n2026-10-11,Lunch"));
   assert.throws(() => parseCsvRows('date,description,amount\n2026,"unfinished,-1'));
 });
 
