@@ -4,7 +4,8 @@ import { useTransactionStore } from "@/store/transactions";
 import { colors, radii, spacing, typography } from "@/theme";
 import { useClerk, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
 	const router = useRouter();
@@ -30,7 +31,8 @@ export default function Profile() {
 	};
 
 	return (
-		<View style={styles.screen}>
+		<SafeAreaView style={styles.screen} edges={["top"]}>
+		<ScrollView contentContainerStyle={styles.content}>
 			<ScreenTitle>Profile</ScreenTitle>
 			<View style={ui.card}>
 				<Text style={styles.name}>{accountName}</Text>
@@ -42,7 +44,8 @@ export default function Profile() {
 			<Pressable style={styles.destructive} onPress={clear}>
 				<Text style={styles.destructiveText}>Clear local data</Text>
 			</Pressable>
-		</View>
+		</ScrollView>
+		</SafeAreaView>
 	);
 }
-const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: colors.neutral[50], padding: spacing[5], gap: spacing[3] }, name: { ...typography.bodyMedium, color: colors.neutral[900] }, email: { ...typography.caption, color: colors.neutral[600], marginTop: spacing[1] }, button: { height: 52, borderRadius: radii.md, borderWidth: 1, borderColor: colors.neutral[200], alignItems: "center", justifyContent: "center", backgroundColor: colors.neutral.surface, marginTop: "auto" }, buttonText: { ...typography.bodyMedium, color: colors.neutral[900] }, destructive: { height: 52, borderRadius: radii.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.semantic.expense }, destructiveText: { ...typography.bodyMedium, color: colors.neutral.surface } });
+const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: colors.neutral[50] }, content: { flexGrow: 1, padding: spacing[5], gap: spacing[3] }, name: { ...typography.bodyMedium, color: colors.neutral[900], flexShrink: 1 }, email: { ...typography.caption, color: colors.neutral[600], marginTop: spacing[1], flexShrink: 1 }, button: { minHeight: 52, borderRadius: radii.md, borderWidth: 1, borderColor: colors.neutral[200], alignItems: "center", justifyContent: "center", backgroundColor: colors.neutral.surface, marginTop: "auto" }, buttonText: { ...typography.bodyMedium, color: colors.neutral[900] }, destructive: { minHeight: 52, borderRadius: radii.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.semantic.expense }, destructiveText: { ...typography.bodyMedium, color: colors.neutral.surface } });

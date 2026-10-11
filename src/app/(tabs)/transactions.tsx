@@ -3,8 +3,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { TransactionRow, Empty, ScreenTitle, styles as ui } from "@/components/ui";
 import { useTransactionStore } from "@/store/transactions";
 import { colors, radii, spacing, typography } from "@/theme";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Transactions() {
 	const router = useRouter();
+	const insets = useSafeAreaInsets();
 	const transactions = useTransactionStore((state) => state.transactions);
 	const sorted = [...transactions].sort((left, right) => right.date.localeCompare(left.date));
 	const groups = sorted.reduce<{ date: string; transactions: typeof sorted }[]>((result, transaction) => {
@@ -16,7 +18,7 @@ export default function Transactions() {
 	}, []);
 
 	return (
-		<View style={styles.screen}>
+		<SafeAreaView style={styles.screen} edges={["top"]}>
 			<ScrollView contentContainerStyle={styles.content}>
 				<ScreenTitle>Transactions</ScreenTitle>
 				<Pressable onPress={() => router.push("/import" as never)} accessibilityRole="button">
@@ -35,10 +37,10 @@ export default function Transactions() {
 					</View>
 				))}
 			</ScrollView>
-			<Pressable style={styles.add} onPress={() => router.push("/transaction/new" as never)} accessibilityRole="button">
+			<Pressable style={[styles.add, { bottom: Math.max(spacing[4], insets.bottom + spacing[2]) }]} onPress={() => router.push("/transaction/new" as never)} accessibilityRole="button">
 				<Text style={styles.addText}>Add transaction</Text>
 			</Pressable>
-		</View>
+		</SafeAreaView>
 	);
 }
 

@@ -8,12 +8,14 @@ import {
     KeyboardAvoidingView,
     Modal,
     Platform,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
+  import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Mode = "sign-up" | "sign-in";
 
@@ -23,6 +25,7 @@ function errorMessage(error: unknown) {
 
 export function AuthScreen({ mode }: { mode: Mode }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { isLoaded: isSignUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
   const { isLoaded: isSignInLoaded, signIn, setActive: setSignInActive } = useSignIn();
   const { startSSOFlow } = useSSO();
@@ -112,8 +115,9 @@ export function AuthScreen({ mode }: { mode: Mode }) {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <View style={styles.content}>
+    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <TouchableOpacity style={styles.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
           <Text style={styles.backText}>‹</Text>
         </TouchableOpacity>
@@ -156,10 +160,10 @@ export function AuthScreen({ mode }: { mode: Mode }) {
             {mode === "sign-up" ? "Sign in" : "Create an account"}
           </Text>
         </Text>
-      </View>
+      </ScrollView>
       <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
-        <View style={styles.scrim}>
-          <View style={styles.sheet}>
+        <KeyboardAvoidingView style={styles.scrim} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+          <ScrollView style={styles.sheetViewport} contentContainerStyle={[styles.sheet, { paddingBottom: Math.max(spacing[6], insets.bottom + spacing[3]) }]} keyboardShouldPersistTaps="handled">
             <Text style={styles.sheetTitle}>Check your email</Text>
             <Text style={styles.sheetBody}>We sent a 6-digit verification code to {email}.</Text>
             <TextInput
@@ -176,16 +180,17 @@ export function AuthScreen({ mode }: { mode: Mode }) {
             {isSubmitting && visible ? <ActivityIndicator color={colors.primary[600]} /> : null}
             {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
             <Text style={styles.hint}>Enter the code to verify your email address.</Text>
-          </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.neutral[50] },
-  content: { flex: 1, padding: spacing[5], paddingTop: spacing[10] },
+  content: { flexGrow: 1, padding: spacing[5], paddingTop: spacing[10] },
   back: { width: 44, height: 44, justifyContent: "center" },
   backText: { color: colors.neutral[900], fontSize: 36, fontFamily: fontFamily.regular },
   title: { ...typography.title1, color: colors.neutral[900], marginTop: spacing[8] },
@@ -203,7 +208,8 @@ const styles = StyleSheet.create({
   footer: { ...typography.caption, color: colors.neutral[600], textAlign: "center", marginTop: spacing[6] },
   link: { color: colors.primary[600], fontFamily: fontFamily.semiBold },
   scrim: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(15, 23, 42, 0.4)" },
-  sheet: { backgroundColor: colors.neutral.surface, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl, padding: spacing[6], gap: spacing[3] },
+  sheetViewport: { maxHeight: "85%", backgroundColor: colors.neutral.surface, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl },
+  sheet: { padding: spacing[6], gap: spacing[3] },
   sheetTitle: { ...typography.title2, color: colors.neutral[900] },
   sheetBody: { ...typography.body, color: colors.neutral[600] },
   codeInput: { height: 56, borderRadius: radii.md, backgroundColor: colors.neutral[100], textAlign: "center", letterSpacing: 8, color: colors.neutral[900], ...typography.title2 },

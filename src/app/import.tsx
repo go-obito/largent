@@ -7,6 +7,7 @@ import Constants from "expo-constants";
 import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type ColumnMapping = { date: number | null; description: number | null; amount: number | null };
 type ImportedRow = { date: string; description: string; amount: number; type: "income" | "expense" };
@@ -152,7 +153,8 @@ export default function ImportScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Import bank statement</Text>
       <Text style={styles.description}>Select a CSV statement, map its columns, then review each transaction.</Text>
       <Pressable style={styles.secondaryButton} onPress={() => void chooseFile()} disabled={busy} accessibilityRole="button">
@@ -214,6 +216,7 @@ export default function ImportScreen() {
         <Text style={styles.resultText}>{summary.imported} imported · {summary.skipped} skipped</Text>
       </View> : null}
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

@@ -7,6 +7,7 @@ import { colors, radii, spacing, typography } from "@/theme";
 import type { ReportPeriod } from "@/types/finance";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 export default function Reports() {
 	const transactions = useTransactionStore((state) => state.transactions);
 	const [period, setPeriod] = useState<ReportPeriod>("monthly");
@@ -15,7 +16,8 @@ export default function Reports() {
 	const maxBucket = Math.max(...buckets.map((bucket) => bucket.amount), 0);
 
 	return (
-		<ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+		<SafeAreaView style={styles.screen} edges={["top"]}>
+		<ScrollView contentContainerStyle={styles.content}>
 			<ScreenTitle>Reports</ScreenTitle>
 			<View style={styles.toggle}>
 				{(["weekly", "monthly"] as const).map((value) => (
@@ -39,7 +41,7 @@ export default function Reports() {
 							<View style={styles.barTrack}>
 								{bucket.amount > 0 ? <View style={[styles.bar, { width: `${(bucket.amount / maxBucket) * 100}%` }]} /> : null}
 							</View>
-							<Text style={styles.bucketAmount}>{formatMoney(bucket.amount)}</Text>
+							<Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.bucketAmount}>{formatMoney(bucket.amount)}</Text>
 						</View>
 					))}
 				</View>
@@ -52,6 +54,7 @@ export default function Reports() {
 				))}
 			</>}
 		</ScrollView>
+		</SafeAreaView>
 	);
 }
 
@@ -74,5 +77,5 @@ const styles = StyleSheet.create({
 	bucketLabel: { ...typography.small, color: colors.neutral[600], width: 48 },
 	barTrack: { flex: 1, height: 8, backgroundColor: colors.neutral[200], borderRadius: radii.full, overflow: "hidden" },
 	bar: { height: "100%", backgroundColor: colors.primary[600], borderRadius: radii.full },
-	bucketAmount: { ...typography.small, color: colors.neutral[700], fontVariant: ["tabular-nums"], minWidth: 76, textAlign: "right" },
+	bucketAmount: { ...typography.small, flexShrink: 1, minWidth: 0, maxWidth: "42%", color: colors.neutral[700], fontVariant: ["tabular-nums"], textAlign: "right" },
 });

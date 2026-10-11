@@ -21,7 +21,7 @@ export function CustomTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const [barWidth, setBarWidth] = useState(0);
   const indicatorPosition = useSharedValue(0);
-  const tabWidth = state.routes.length > 0 ? barWidth / state.routes.length : 0;
+  const tabWidth = state.routes.length > 0 ? (barWidth - spacing[2] * 2) / state.routes.length : 0;
 
   useEffect(() => {
     indicatorPosition.value = withSpring(state.index * tabWidth, { damping: 18, stiffness: 180 });
@@ -42,7 +42,7 @@ export function CustomTabBar({ state, navigation }: TabBarProps) {
           pointerEvents="none"
           style={[
             styles.indicatorSlot,
-            { width: tabWidth, left: (tabWidth - 48) / 2 },
+            { width: tabWidth, left: spacing[2] + (tabWidth - 48) / 2 },
             indicatorStyle,
           ]}
         >
@@ -75,7 +75,7 @@ export function CustomTabBar({ state, navigation }: TabBarProps) {
               size={24}
               color={color}
             />
-            {!focused ? <Text style={styles.label}>{presentation.label}</Text> : null}
+            {!focused ? <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={styles.label}>{presentation.label}</Text> : null}
           </Pressable>
         );
       })}

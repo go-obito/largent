@@ -7,13 +7,15 @@ import { useTransactionStore } from "@/store/transactions";
 import { colors, radii, spacing, typography } from "@/theme";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Budgets() {
 	const router = useRouter();
+	const insets = useSafeAreaInsets();
 	const budgets = useBudgetStore((state) => state.budgets);
 	const transactions = useTransactionStore((state) => state.transactions);
 
 	return (
-		<View style={styles.screen}>
+		<SafeAreaView style={styles.screen} edges={["top"]}>
 			<ScrollView contentContainerStyle={styles.content}>
 				<ScreenTitle>Budgets</ScreenTitle>
 				{budgets.length === 0 ? <Empty title="No budgets yet" description="Create a weekly or monthly spending limit." /> : budgets.map((budget) => {
@@ -35,10 +37,10 @@ export default function Budgets() {
 					);
 				})}
 			</ScrollView>
-			<Pressable style={styles.add} onPress={() => router.push("/budget/new" as never)} accessibilityRole="button">
+			<Pressable style={[styles.add, { bottom: Math.max(spacing[4], insets.bottom + spacing[2]) }]} onPress={() => router.push("/budget/new" as never)} accessibilityRole="button">
 				<Text style={styles.addText}>Create budget</Text>
 			</Pressable>
-		</View>
+		</SafeAreaView>
 	);
 }
 

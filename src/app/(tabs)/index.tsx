@@ -8,6 +8,7 @@ import { colors, radii, spacing, typography } from "@/theme";
 import { useUser } from "@clerk/expo";
 import { type Href, useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
 	const router = useRouter();
@@ -19,7 +20,8 @@ export default function Home() {
 	const greeting = user?.firstName || user?.primaryEmailAddress?.emailAddress || "there";
 
 	return (
-		<ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+		<SafeAreaView style={styles.screen} edges={["top"]}>
+		<ScrollView contentContainerStyle={styles.content}>
 			<View style={styles.heading}>
 				<ScreenTitle>{`Good day, ${greeting}`}</ScreenTitle>
 				<TouchableOpacity accessibilityRole="button" accessibilityLabel="Open onboarding" onPress={() => router.push("/onboarding" as Href)}>
@@ -28,10 +30,10 @@ export default function Home() {
 			</View>
 			<View style={styles.balance}>
 				<Text style={styles.balanceLabel}>Total balance</Text>
-				<Text style={styles.balanceAmount}>{formatMoney(balance.income - balance.expenses)}</Text>
+				<Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.balanceAmount}>{formatMoney(balance.income - balance.expenses)}</Text>
 				<View style={styles.totals}>
-					<Text style={styles.income}>+ {formatMoney(current.income)}</Text>
-					<Text style={styles.expense}>− {formatMoney(current.expenses)}</Text>
+					<Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.income}>+ {formatMoney(current.income)}</Text>
+					<Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.expense}>− {formatMoney(current.expenses)}</Text>
 				</View>
 			</View>
 			<Text style={styles.section}>Budgets</Text>
@@ -65,6 +67,7 @@ export default function Home() {
 				</View>
 			)}
 		</ScrollView>
+		</SafeAreaView>
 	);
 }
 
@@ -76,9 +79,9 @@ const styles = StyleSheet.create({
 	balance: { backgroundColor: colors.primary[600], padding: spacing[5], borderRadius: radii.lg },
 	balanceLabel: { ...typography.caption, color: colors.primary[100] },
 	balanceAmount: { ...typography.display, color: colors.neutral.surface, fontVariant: ["tabular-nums"], marginTop: spacing[1] },
-	totals: { flexDirection: "row", gap: spacing[5], marginTop: spacing[3] },
-	income: { ...typography.caption, color: colors.neutral.surface },
-	expense: { ...typography.caption, color: colors.primary[100] },
+	totals: { flexDirection: "row", gap: spacing[3], marginTop: spacing[3] },
+	income: { ...typography.caption, flex: 1, minWidth: 0, color: colors.neutral.surface },
+	expense: { ...typography.caption, flex: 1, minWidth: 0, color: colors.primary[100], textAlign: "right" },
 	section: { ...typography.title3, color: colors.neutral[900], marginTop: spacing[3] },
 	budgetHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 	budgetName: { ...typography.bodyMedium, color: colors.neutral[900] },

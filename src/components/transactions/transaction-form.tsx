@@ -6,7 +6,8 @@ import { useTransactionStore } from "@/store/transactions";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Draft = { type: TransactionType; amount: string; categoryId: string; date: string; note: string };
 
@@ -74,7 +75,9 @@ export function TransactionForm({ transactionId }: { transactionId?: string }) {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>{transactionId ? "Edit transaction" : "Add transaction"}</Text>
       {transactionId && !transaction ? (
         <Text style={styles.error}>This transaction could not be found.</Text>
@@ -108,6 +111,8 @@ export function TransactionForm({ transactionId }: { transactionId?: string }) {
         </>
       )}
     </ScrollView>
+    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

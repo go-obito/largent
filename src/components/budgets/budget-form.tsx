@@ -5,7 +5,8 @@ import { colors, radii, spacing, typography } from "@/theme";
 import type { BudgetPeriod } from "@/types/finance";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Draft = { categoryId: string; limit: string; period: BudgetPeriod };
 
@@ -48,7 +49,9 @@ export function BudgetForm({ budgetId }: { budgetId?: string }) {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>{budgetId ? "Edit budget" : "Create budget"}</Text>
       {budgetId && !budget ? <Text style={styles.error}>This budget could not be found.</Text> : <>
         <Text style={styles.label}>Category</Text>
@@ -74,6 +77,8 @@ export function BudgetForm({ budgetId }: { budgetId?: string }) {
         {budgetId ? <Pressable style={styles.delete} onPress={confirmDelete} accessibilityRole="button"><Text style={styles.deleteText}>Delete budget</Text></Pressable> : null}
       </>}
     </ScrollView>
+    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
