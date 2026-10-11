@@ -1,0 +1,51 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+@import "nativewind/theme";
+
+@theme {
+  /* Brand */
+  --color-brand-forest: #0f5d3b;
+  --color-brand-green: #16a34a;
+  --color-brand-mint: #34d399;
+  --color-brand-light-green: #e6f9ee;
+  --color-brand-charcoal: #0b1320;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Neutrals */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-border: #e5e7eb;
+  --color-surface: #f8fafc;
+  --color-background: #ffffff;
+
+  /* Font families map directly to the names loaded in the root layout. */
+  --font-sans: "Inter_400Regular";
+  --font-inter: "Inter_400Regular";
+  --font-inter-medium: "Inter_500Medium";
+  --font-inter-semibold: "Inter_600SemiBold";
+  --font-inter-bold: "Inter_700Bold";
+
+  /* Type scale from the Largent design system. */
+  --text-h1: 32px;
+  --text-h1--line-height: 38.4px;
+  --text-h2: 24px;
+  --text-h2--line-height: 31.2px;
+  --text-h3: 20px;
+  --text-h3--line-height: 26px;
+  --text-h4: 16px;
+  --text-h4--line-height: 22.4px;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 25.6px;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 22.4px;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 20.8px;
+  --text-caption: 11px;
+  --text-caption--line-height: 15.4px;
+}
