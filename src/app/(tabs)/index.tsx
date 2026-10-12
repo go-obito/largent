@@ -23,6 +23,15 @@ export default function Home() {
   const weeklyLimit = weeklyBudgets.reduce((sum, budget) => sum + budget.limit, 0);
   const remaining = Math.max(weeklyLimit - weekExpenses, 0);
   const spendRatio = weeklyLimit > 0 ? Math.min(weekExpenses / weeklyLimit, 1) : 0;
+  const now = new Date();
+  const todayKey = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+  const todayExpenses = transactions
+    .filter((transaction) => transaction.type === "expense" && transaction.date.slice(0, 10) === todayKey)
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  const priorDayExpenses = Math.max(weekExpenses - todayExpenses, 0);
+  const daysRemaining = 7 - ((now.getDay() + 6) % 7);
+  const dailyTarget = weeklyLimit > 0 ? Math.max(weeklyLimit - priorDayExpenses, 0) / daysRemaining : 0;
+  const dailyRemaining = Math.max(dailyTarget - todayExpenses, 0);
   const weeklyBars = spendingOverTime(transactions, "weekly");
   const maxBar = Math.max(...weeklyBars.map((item) => item.amount), 1);
   const todayIndex = (new Date().getDay() + 6) % 7;
@@ -63,8 +72,49 @@ export default function Home() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <View><Text style={styles.sectionTitle}>Weekly spending</Text><Text style={styles.sectionSubtitle}>Keep this week on track</Text></View>
-          <Pressable accessibilityRole="button" onPress={() => router.push("/reports" as Href)} style={styles.roundAction}><Ionicons name="arrow-up-right" size={19} color={colors.primary[700]} /></Pressable>
+          <View><Text style={styles.sectionTitle}>Daily spending</Text><Text style={styles.sectionSubtitle}>A simple limit for today</Text></View>
+          <Pressable accessibilityRole="button" onPress={() => router.push("/transactions" as Href)} style={styles.roundAction}><Ionicons name="arrow-up-right" size={19} color={colors.primary[700]} /></Pressable>
+        </View>
+        <View style={styles.dailyCard}>
+          <View style={styles.dailyTop}>
+            <View>
+              <Text style={styles.dailyEyebrow}>SPENT TODAY</Text>
+              <Text style={styles.dailySpent}>{formatMoney(todayExpenses)}</Text>
+            </View>
+            {weeklyLimit > 0 ? (
+              <View style={[styles.dailyStatus, todayExpenses > dailyTarget && styles.dailyStatusOver]}>
+                <View style={[styles.dailyStatusDot, todayExpenses > dailyTarget && styles.dailyStatusDotOver]} />
+                <Text style={[styles.dailyStatusText, todayExpenses > dailyTarget && styles.dailyStatusTextOver]}>
+                  {todayExpenses > dailyTarget ? "Over daily target" : "Within target"}
+                </Text>
+              </View>
+            ) : (
+              <Pressable onPress={() => router.push("/budgets" as Href)} style={styles.dailySetup}>
+                <Text style={styles.dailySetupText}>Set budget</Text>
+                <Ionicons name="arrow-forward" size={13} color={colors.primary[700]} />
+              </Pressable>
+            )}
+          </View>
+          {weeklyLimit > 0 ? (
+            <>
+              <View style={styles.dailyTrack}>
+                <View style={[styles.dailyFill, { width: String(Math.min(todayExpenses / Math.max(dailyTarget, 1), 1) * 100) + "%", backgroundColor: todayExpenses > dailyTarget ? colors.semantic.expense : colors.primary[600] }]} />
+              </View>
+              <View style={styles.dailyMeta}>
+                <Text style={styles.dailyMetaText}>Daily target {formatMoney(dailyTarget)}</Text>
+                <Text style={[styles.dailyMetaText, todayExpenses > dailyTarget && styles.dailyStatusTextOver]}>
+                  {todayExpenses > dailyTarget ? formatMoney(todayExpenses - dailyTarget) + " over" : formatMoney(dailyRemaining) + " left"}
+                </Text>
+              </View>
+              <Text style={styles.dailyFootnote}>Adjusted for what you've spent earlier this week.</Text>
+            </>
+          ) : (
+            <Text style={styles.dailyFootnote}>Set a weekly budget to calculate a realistic daily spending target from your remaining allowance.</Text>
+          )}
+          <Pressable onPress={() => router.push("/transaction/new" as Href)} accessibilityRole="button" style={styles.dailyAdd}>
+            <Ionicons name="add-circle-outline" size={18} color={colors.primary[700]} />
+            <Text style={styles.dailyAddText}>Record today's spending</Text>
+          </Pressable>
         </View>
 
         <View style={styles.spendingCard}>
@@ -182,6 +232,25 @@ const styles = StyleSheet.create({
   expenseDot: { backgroundColor: "#FDA4AF" },
   summaryLabel: { ...typography.small, color: "rgba(255,255,255,0.68)" },
   summaryValue: { ...typography.title3, color: "#FFFFFF", fontVariant: ["tabular-nums"], marginTop: spacing[2] },
+  dailyCard: { backgroundColor: colors.neutral.surface, borderWidth: 1, borderColor: colors.neutral[200], borderRadius: radii.xl, padding: spacing[4] },
+  dailyTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing[3] },
+  dailyEyebrow: { ...typography.small, color: colors.neutral[500], letterSpacing: 0.8 },
+  dailySpent: { ...typography.title1, color: colors.neutral[900], fontVariant: ["tabular-nums"], marginTop: 3 },
+  dailyStatus: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#ECFDF5", borderRadius: radii.full, paddingHorizontal: spacing[3], paddingVertical: 7 },
+  dailyStatusOver: { backgroundColor: colors.semantic.expenseTint },
+  dailyStatusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.semantic.income },
+  dailyStatusDotOver: { backgroundColor: colors.semantic.expense },
+  dailyStatusText: { ...typography.small, color: colors.semantic.income, fontFamily: "Inter_600SemiBold" },
+  dailyStatusTextOver: { color: colors.semantic.expense },
+  dailySetup: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: colors.primary[50], borderRadius: radii.full, paddingHorizontal: spacing[3], paddingVertical: 8 },
+  dailySetupText: { ...typography.small, color: colors.primary[700], fontFamily: "Inter_600SemiBold" },
+  dailyTrack: { height: 8, borderRadius: radii.full, backgroundColor: colors.neutral[100], overflow: "hidden", marginTop: spacing[4] },
+  dailyFill: { height: "100%", borderRadius: radii.full },
+  dailyMeta: { flexDirection: "row", justifyContent: "space-between", gap: spacing[2], marginTop: spacing[2] },
+  dailyMetaText: { ...typography.small, color: colors.neutral[600] },
+  dailyFootnote: { ...typography.small, color: colors.neutral[500], lineHeight: 18, marginTop: spacing[3] },
+  dailyAdd: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing[2], borderTopWidth: 1, borderTopColor: colors.neutral[100], marginTop: spacing[3], paddingTop: spacing[3] },
+  dailyAddText: { ...typography.caption, color: colors.primary[700], fontFamily: "Inter_600SemiBold" },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing[3], marginTop: spacing[1] },
   sectionTitle: { ...typography.title3, color: colors.neutral[900] },
   sectionSubtitle: { ...typography.small, color: colors.neutral[500], marginTop: 3 },
