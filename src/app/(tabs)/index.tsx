@@ -1,4 +1,4 @@
-import { Empty, ScreenTitle, TransactionRow, styles as ui } from "@/components/ui";
+import { Empty, ScreenTitle, TransactionRow } from "@/components/ui";
 import { categoryById } from "@/data/categories";
 import { formatMoney } from "@/lib/currency";
 import { budgetSpend, spendingOverTime, totals, transactionsInPeriod } from "@/lib/finance";
@@ -35,7 +35,7 @@ export default function Home() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={styles.kicker}>YOUR MONEY, CLEARLY</Text>
+            <Text style={styles.kicker}>WEEKLY MONEY OVERVIEW</Text>
             <ScreenTitle>{"Good " + greeting + ", " + firstName}</ScreenTitle>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="Open profile" onPress={() => router.push("/profile" as Href)} style={styles.avatar}>
