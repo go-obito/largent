@@ -1,6 +1,14 @@
 import type { BudgetPeriod, ReportSummary, Transaction } from "@/types/finance";
 export function periodStart(period: BudgetPeriod, date = new Date()) { const start = new Date(date); if (period === "monthly") start.setDate(1); else start.setDate(start.getDate() - ((start.getDay() + 6) % 7)); start.setHours(0, 0, 0, 0); return start; }
-export function transactionsInPeriod(transactions: Transaction[], period: BudgetPeriod, date = new Date()) { const start = periodStart(period, date).getTime(); return transactions.filter((transaction) => new Date(transaction.date).getTime() >= start && new Date(transaction.date).getTime() <= date.getTime()); }
+function dateKey(date: Date) { return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-"); }
+export function transactionsInPeriod(transactions: Transaction[], period: BudgetPeriod, date = new Date()) {
+	const startKey = dateKey(periodStart(period, date));
+	const endKey = dateKey(date);
+	return transactions.filter((transaction) => {
+		const transactionDay = transaction.date.slice(0, 10);
+		return transactionDay >= startKey && transactionDay <= endKey;
+	});
+}
 export function totals(transactions: Transaction[]) { return transactions.reduce((result, transaction) => ({ income: result.income + (transaction.type === "income" ? transaction.amount : 0), expenses: result.expenses + (transaction.type === "expense" ? transaction.amount : 0) }), { income: 0, expenses: 0 }); }
 export function reportSummary(transactions: Transaction[], period: BudgetPeriod): ReportSummary { const scoped = transactionsInPeriod(transactions, period); const summary = totals(scoped); const categories = new Map<string, number>(); const dates = new Map<string, number>(); scoped.filter((item) => item.type === "expense").forEach((item) => { categories.set(item.categoryId, (categories.get(item.categoryId) ?? 0) + item.amount); const date = item.date.slice(0, 10); dates.set(date, (dates.get(date) ?? 0) + item.amount); }); return { ...summary, net: summary.income - summary.expenses, byCategory: [...categories].map(([categoryId, amount]) => ({ categoryId, amount })), byDate: [...dates].map(([date, amount]) => ({ date, amount })) }; }
 export function budgetSpend(transactions: Transaction[], categoryId: string, period: BudgetPeriod) { return transactionsInPeriod(transactions, period).filter((item) => item.type === "expense" && item.categoryId === categoryId).reduce((total, item) => total + item.amount, 0); }
