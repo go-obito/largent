@@ -19,10 +19,10 @@ import {
     updateTransactionInList,
 } from "../src/store/finance-operations.ts";
 import {
-  addNeedToList,
-  deleteNeedFromList,
-  moveNeedInList,
-  updateNeedInList,
+    addNeedToList,
+    deleteNeedFromList,
+    moveNeedInList,
+    updateNeedInList,
 } from "../src/store/needs-operations.ts";
 
 const transactionInput = {
