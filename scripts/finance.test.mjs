@@ -5,6 +5,7 @@ import { createStore } from "zustand/vanilla";
 import { parseCsvDate, parseCsvRows } from "../src/lib/csv.ts";
 import { formatMoney, parseCsvAmount, parseMoney } from "../src/lib/currency.ts";
 import { budgetSpend, reportSummary, totals } from "../src/lib/finance.ts";
+import { needsTotal } from "../src/lib/needs.ts";
 import {
     addBudgetToList,
     addTransactionToList,
@@ -17,6 +18,12 @@ import {
     updateBudgetInList,
     updateTransactionInList,
 } from "../src/store/finance-operations.ts";
+import {
+  addNeedToList,
+  deleteNeedFromList,
+  moveNeedInList,
+  updateNeedInList,
+} from "../src/store/needs-operations.ts";
 
 const transactionInput = {
   type: "expense",
@@ -181,4 +188,21 @@ test("Zustand hydration preserves user data, removes legacy seeds, and keeps cle
   await freshBudgets.persist.rehydrate();
   assert.deepEqual(freshTransactions.getState().transactions, []);
   assert.deepEqual(freshBudgets.getState().budgets, []);
+});
+
+test("needs can be added, edited, removed, and reordered without changing finance totals", () => {
+  const first = addNeedToList([], { name: " Laptop ", estimatedCost: 125000 }, "need-1");
+  const needs = addNeedToList(first, { name: "Desk", estimatedCost: 65000 }, "need-2");
+  assert.equal(needs[0].name, "Laptop");
+  assert.equal(needsTotal(needs), 190000);
+  assert.deepEqual(moveNeedInList(needs, "need-2", -1).map((need) => need.id), ["need-2", "need-1"]);
+  assert.deepEqual(moveNeedInList(needs, "need-1", -1), needs);
+  assert.deepEqual(moveNeedInList(needs, "need-2", 1), needs);
+  assert.equal(updateNeedInList(needs, "need-1", { name: "Work laptop", estimatedCost: 130000 })[0].name, "Work laptop");
+  assert.equal(deleteNeedFromList(needs, "need-1").length, 1);
+  assert.throws(() => addNeedToList([], { name: "", estimatedCost: 500 }, "bad"));
+  assert.throws(() => addNeedToList([], { name: "Laptop", estimatedCost: 12.5 }, "bad"));
+  assert.deepEqual(totals([transactionInput]), { income: 0, expenses: 1250 });
+  assert.equal(reportSummary([transactionInput], "monthly").expenses, 1250);
+  assert.equal(budgetSpend([transactionInput], "food", "monthly"), 1250);
 });

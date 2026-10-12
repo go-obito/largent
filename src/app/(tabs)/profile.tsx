@@ -1,5 +1,6 @@
 import { ScreenTitle, styles as ui } from "@/components/ui";
 import { useBudgetStore } from "@/store/budgets";
+import { useNeedsStore } from "@/store/needs";
 import { useTransactionStore } from "@/store/transactions";
 import { colors, radii, spacing, typography } from "@/theme";
 import { useClerk, useUser } from "@clerk/expo";
@@ -13,13 +14,14 @@ export default function Profile() {
   const { user } = useUser();
   const clearTransactions = useTransactionStore((state) => state.clear);
   const clearBudgets = useBudgetStore((state) => state.clear);
+  const clearNeeds = useNeedsStore((state) => state.clear);
   const accountName = user?.fullName || user?.primaryEmailAddress?.emailAddress || "Largent account";
   const email = user?.primaryEmailAddress?.emailAddress;
 
   const clear = () =>
-    Alert.alert("Clear local data?", "This permanently removes transactions and budgets stored on this device.", [
+    Alert.alert("Clear local data?", "This permanently removes transactions, budgets, and prioritized needs stored on this device.", [
       { text: "Cancel", style: "cancel" },
-      { text: "Clear data", style: "destructive", onPress: () => { clearTransactions(); clearBudgets(); } },
+      { text: "Clear data", style: "destructive", onPress: () => { clearTransactions(); clearBudgets(); clearNeeds(); } },
     ]);
 
   const signOutUser = async () => {

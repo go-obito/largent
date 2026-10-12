@@ -5,5 +5,6 @@ export type ReportPeriod = BudgetPeriod;
 export type Category = { id: string; name: string; icon: string; type: TransactionType };
 export type Transaction = { id: string; type: TransactionType; amount: number; categoryId: string; date: string; note: string; source: TransactionSource; createdAt: string; updatedAt: string };
 export type Budget = { id: string; categoryId: string; limit: number; period: BudgetPeriod };
+export type NeedItem = { id: string; name: string; estimatedCost: number };
 export type CategorySpending = { categoryId: string; amount: number };
 export type ReportSummary = { income: number; expenses: number; net: number; byCategory: CategorySpending[]; byDate: { date: string; amount: number }[] };
