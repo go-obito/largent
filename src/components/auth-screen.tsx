@@ -20,7 +20,15 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 type Mode = "sign-up" | "sign-in";
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+  if (error && typeof error === "object") {
+    const clerkError = error as {
+      errors?: Array<{ longMessage?: string; message?: string }>;
+      message?: string;
+    };
+    const firstError = clerkError.errors?.[0];
+    return firstError?.longMessage ?? firstError?.message ?? clerkError.message ?? "Something went wrong. Please try again.";
+  }
+  return "Something went wrong. Please try again.";
 }
 
 export function AuthScreen({ mode }: { mode: Mode }) {
@@ -39,18 +47,31 @@ export function AuthScreen({ mode }: { mode: Mode }) {
   const isValidEmail = /^\S+@\S+\.\S+$/.test(email);
   const title = mode === "sign-up" ? "Create your account" : "Welcome back";
 
+  function finishAuthentication() {
+    setVisible(false);
+    setCode("");
+    router.replace("/");
+  }
+
   async function continueWithEmail() {
     if (!isValidEmail || isSubmitting) return;
     setError("");
     setIsSubmitting(true);
     try {
       if (mode === "sign-up") {
-        if (!isSignUpLoaded) return;
+        if (!isSignUpLoaded) {
+          setError("Authentication is still loading. Please try again.");
+          return;
+        }
         await signUp.create({ emailAddress: email.trim() });
         await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       } else {
-        if (!isSignInLoaded) return;
+        if (!isSignInLoaded) {
+          setError("Authentication is still loading. Please try again.");
+          return;
+        }
         await signIn.create({ strategy: "email_code", identifier: email.trim() });
+        await signIn.prepareFirstFactor({ strategy: "email_code" });
       }
       setCode("");
       setVisible(true);
@@ -72,22 +93,54 @@ export function AuthScreen({ mode }: { mode: Mode }) {
     setIsSubmitting(true);
     try {
       if (mode === "sign-up") {
-        if (!isSignUpLoaded) return;
+        if (!isSignUpLoaded) {
+          setError("Authentication is still loading. Please try again.");
+          return;
+        }
         const result = await signUp.attemptEmailAddressVerification({ code: next });
         if (result.status !== "complete" || !result.createdSessionId) {
-          throw new Error("We couldn't complete sign-up with that code. Check it and try again.");
+          throw new Error("Sign-up is not complete yet. Check the code and try again.");
         }
-        await setSignUpActive({ session: result.createdSessionId });
+        await setSignUpActive({
+          session: result.createdSessionId,
+          navigate: async ({ session, decorateUrl }) => {
+            if (session?.currentTask) {
+              setError("Your account needs one more step before you can continue. Please complete it and try again.");
+              return;
+            }
+            const url = decorateUrl("/");
+            if (url.startsWith("http")) {
+              window.location.assign(url);
+            } else {
+              router.replace(url as Href);
+            }
+          },
+        });
       } else {
-        if (!isSignInLoaded) return;
+        if (!isSignInLoaded) {
+          setError("Authentication is still loading. Please try again.");
+          return;
+        }
         const result = await signIn.attemptFirstFactor({ strategy: "email_code", code: next });
         if (result.status !== "complete" || !result.createdSessionId) {
-          throw new Error("We couldn't complete sign-in with that code. Check it and try again.");
+          throw new Error("Sign-in is not complete yet. Check the code and try again.");
         }
-        await setSignInActive({ session: result.createdSessionId });
+        await setSignInActive({
+          session: result.createdSessionId,
+          navigate: async ({ session, decorateUrl }) => {
+            if (session?.currentTask) {
+              setError("Your account needs one more step before you can continue. Please complete it and try again.");
+              return;
+            }
+            const url = decorateUrl("/");
+            if (url.startsWith("http")) {
+              window.location.assign(url);
+            } else {
+              router.replace(url as Href);
+            }
+          },
+        });
       }
-      setVisible(false);
-      router.replace("/");
     } catch (verificationError) {
       setCode("");
       setError(errorMessage(verificationError));
@@ -98,6 +151,7 @@ export function AuthScreen({ mode }: { mode: Mode }) {
   }
 
   async function continueWithGoogle() {
+    if (isSubmitting) return;
     setError("");
     setIsSubmitting(true);
     try {
@@ -106,7 +160,7 @@ export function AuthScreen({ mode }: { mode: Mode }) {
         throw new Error("Google sign-in did not complete. Please try again.");
       }
       await setActive({ session: createdSessionId });
-      router.replace("/");
+      finishAuthentication();
     } catch (oauthError) {
       setError(errorMessage(oauthError));
     } finally {
@@ -139,7 +193,7 @@ export function AuthScreen({ mode }: { mode: Mode }) {
         />
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
         <TouchableOpacity
-          style={[styles.primary, (!isValidEmail || !isSubmitting && !(mode === "sign-up" ? isSignUpLoaded : isSignInLoaded)) && styles.disabled]}
+          style={[styles.primary, (!isValidEmail || !(mode === "sign-up" ? isSignUpLoaded : isSignInLoaded) || isSubmitting) && styles.disabled]}
           disabled={!isValidEmail || !(mode === "sign-up" ? isSignUpLoaded : isSignInLoaded) || isSubmitting}
           onPress={() => void continueWithEmail()}
           accessibilityRole="button"
@@ -151,7 +205,7 @@ export function AuthScreen({ mode }: { mode: Mode }) {
           <Text style={styles.or}>OR</Text>
           <View style={styles.line} />
         </View>
-        <TouchableOpacity style={styles.social} onPress={() => void continueWithGoogle()} disabled={isSubmitting} accessibilityRole="button">
+        <TouchableOpacity style={[styles.social, isSubmitting && styles.disabledOutline]} onPress={() => void continueWithGoogle()} disabled={isSubmitting} accessibilityRole="button">
           <Text style={styles.socialLabel}>Continue with Google</Text>
         </TouchableOpacity>
         <Text style={styles.footer}>
@@ -161,7 +215,7 @@ export function AuthScreen({ mode }: { mode: Mode }) {
           </Text>
         </Text>
       </ScrollView>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { if (!isSubmitting) setVisible(false); }}>
         <KeyboardAvoidingView style={styles.scrim} behavior={Platform.OS === "ios" ? "padding" : "height"}>
           <ScrollView style={styles.sheetViewport} contentContainerStyle={[styles.sheet, { paddingBottom: Math.max(spacing[6], insets.bottom + spacing[3]) }]} keyboardShouldPersistTaps="handled">
             <Text style={styles.sheetTitle}>Check your email</Text>
@@ -180,6 +234,9 @@ export function AuthScreen({ mode }: { mode: Mode }) {
             {isSubmitting && visible ? <ActivityIndicator color={colors.primary[600]} /> : null}
             {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
             <Text style={styles.hint}>Enter the code to verify your email address.</Text>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => { if (!isSubmitting) { setVisible(false); setCode(""); } }} disabled={isSubmitting} accessibilityRole="button">
+              <Text style={styles.cancelLabel}>Cancel</Text>
+            </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
@@ -204,6 +261,7 @@ const styles = StyleSheet.create({
   line: { flex: 1, height: 1, backgroundColor: colors.neutral[200] },
   or: { ...typography.small, color: colors.neutral[500] },
   social: { height: 52, borderRadius: radii.md, borderWidth: 1, borderColor: colors.neutral[200], backgroundColor: colors.neutral.surface, alignItems: "center", justifyContent: "center" },
+  disabledOutline: { opacity: 0.6 },
   socialLabel: { ...typography.bodyMedium, fontFamily: fontFamily.semiBold, color: colors.neutral[900] },
   footer: { ...typography.caption, color: colors.neutral[600], textAlign: "center", marginTop: spacing[6] },
   link: { color: colors.primary[600], fontFamily: fontFamily.semiBold },
@@ -214,5 +272,7 @@ const styles = StyleSheet.create({
   sheetBody: { ...typography.body, color: colors.neutral[600] },
   codeInput: { height: 56, borderRadius: radii.md, backgroundColor: colors.neutral[100], textAlign: "center", letterSpacing: 8, color: colors.neutral[900], ...typography.title2 },
   hint: { ...typography.caption, color: colors.neutral[500], textAlign: "center" },
+  cancelButton: { minHeight: 44, borderRadius: radii.md, alignItems: "center", justifyContent: "center" },
+  cancelLabel: { ...typography.bodyMedium, color: colors.neutral[600] },
   error: { ...typography.caption, color: colors.semantic.expense, marginTop: spacing[2] },
 });
