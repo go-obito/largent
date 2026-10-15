@@ -71,7 +71,11 @@ export default function ImportScreen() {
       }
       if (file.size && file.size > 2 * 1024 * 1024) throw new Error("The CSV file exceeds the 2 MB limit.");
       setBusy(true);
-      const text = await (await fetch(file.uri)).text();
+      // On web, read the selected File directly. Fetching the picker URI can fail in Safari/iOS
+      // with "The string did not match the expected pattern" for blob/object URLs.
+      const text = Platform.OS === "web" && file.file
+        ? await file.file.text()
+        : await (await fetch(file.uri)).text();
       if (new TextEncoder().encode(text).byteLength > 2 * 1024 * 1024) throw new Error("The CSV file exceeds the 2 MB limit.");
       setFileText(text);
       setFileName(file.name);
