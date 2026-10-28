@@ -1,7 +1,7 @@
-import { categoryById } from "@/data/categories";
+import { categories, categoryById } from "@/data/categories";
 import { formatMoney } from "@/lib/currency";
 import { colors, radii, spacing, typography } from "@/theme";
-import type { Transaction } from "@/types/finance";
+import type { Category, Transaction } from "@/types/finance";
 import { StyleSheet, Text, View } from "react-native";
 
 export function ScreenTitle({ children }: { children: string }) {
@@ -17,8 +17,23 @@ export function Empty({ title, description }: { title: string; description: stri
   );
 }
 
+/**
+ * Resolve a transaction's category strictly by ID first. The second pass handles
+ * legacy persisted records whose category IDs may have been stored as numbers or
+ * with accidental surrounding whitespace. Type matching prevents displaying an
+ * income category for an expense (or vice versa).
+ */
+export function resolveTransactionCategory(transaction: Pick<Transaction, "categoryId" | "type">): Category | undefined {
+  const id = typeof transaction.categoryId === "string" ? transaction.categoryId.trim() : "";
+  const exact = categoryById(id);
+  if (exact?.type === transaction.type) return exact;
+
+  // Do not guess based on transaction type alone; "Other" exists for both kinds.
+  return categories.find((category) => category.id === id && category.type === transaction.type);
+}
+
 export function TransactionRow({ transaction }: { transaction: Transaction }) {
-  const category = categoryById(transaction.categoryId);
+  const category = resolveTransactionCategory(transaction);
   const isIncome = transaction.type === "income";
 
   return (
