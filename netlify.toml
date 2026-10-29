@@ -1,3 +1,7 @@
 [build]
   command = "npx expo export --platform web"
   publish = "dist"
+
+# Expo Router static output emits HTML for each route. Do not use a blanket
+# SPA fallback, which can mask missing generated routes and serve the wrong page.
+# Preserve the deployment's existing static-route behavior.
